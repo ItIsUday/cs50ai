@@ -2,7 +2,7 @@ from collections import deque
 
 
 class Node:
-    def __init__(self, state, parent, action):
+    def __init__(self, state, parent=None, action=None):
         self.state = state
         self.parent = parent
         self.action = action
@@ -30,7 +30,7 @@ class StackFrontier:
 
 
 class QueueFrontier:
-    def __int__(self):
+    def __init__(self):
         self.frontier = deque()
 
     def add(self, node):
