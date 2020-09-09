@@ -90,37 +90,31 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
-
-    # Initialize frontier to just the starting position
+    if source == target: return []
     start = Node(state=source)
     frontier = QueueFrontier()
     frontier.add(start)
+    seen = {(start.state, None)}
 
     # Keep looping until solution found
     while True:
-
-        # If nothing left in frontier, then no path
         if frontier.empty():
-            raise Exception("no solution")
+            return None
 
-        # Choose a node from the frontier
         node = frontier.remove()
 
-        # If node is the goal, then we have a solution
-        if node.state == target:
-            path = []
-            while node.parent is not None:
-                path.append((node.action, node.state))
-                node = node.parent
-            path.reverse()
-            return path
-
-        # Add neighbors to frontier
         for movie, person in neighbors_for_person(node.state):
-            if not frontier.contains_state(person):
-                child = Node(state=person, parent=node, action=movie)
+            child = Node(state=person, parent=node, action=movie)
+            if child.state == target:
+                path = []
+                while child.parent is not None:
+                    path.append((child.action, child.state))
+                    child = child.parent
+                path.reverse()
+                return path
+            if (child.state, node.state) not in seen:
                 frontier.add(child)
-    return
+                seen.add((child.state, node.state))
 
 
 def person_id_for_name(name):
