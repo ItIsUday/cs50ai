@@ -15,17 +15,11 @@ class Minesweeper():
         self.mines = set()
 
         # Initialize an empty field with no mines
-        self.board = []
-        for i in range(self.height):
-            row = []
-            for j in range(self.width):
-                row.append(False)
-            self.board.append(row)
+        self.board = [[False for _ in range(self.width)] for _ in range(self.height)]
 
         # Add mines randomly
         while len(self.mines) != mines:
-            i = random.randrange(height)
-            j = random.randrange(width)
+            i, j = random.randrange(height), random.randrange(width)
             if not self.board[i][j]:
                 self.mines.add((i, j))
                 self.board[i][j] = True
@@ -105,27 +99,30 @@ class Sentence():
         """
         Returns the set of all cells in self.cells known to be mines.
         """
-        raise NotImplementedError
+        if len(self.cells) == self.count: return self.cells
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
         """
-        raise NotImplementedError
+        if len(self.cells) == 0: return self.cells
 
     def mark_mine(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be a mine.
         """
-        raise NotImplementedError
+        if cell in self.cells:
+            self.cells.remove(cell)
+            self.count -= 1
 
     def mark_safe(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be safe.
         """
-        raise NotImplementedError
+        if cell in self.cells:
+            self.cells.remove(cell)
 
 
 class MinesweeperAI():
