@@ -73,7 +73,8 @@ def utility(board):
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
-    if (won := winner(board)) == X:
+    won = winner(board)
+    if won == X:
         return 1
     if won == O:
         return -1
@@ -98,7 +99,8 @@ def maximize(state):
         return utility(state), None
     value, best_move = float("-inf"), None
     for action in actions(state):
-        if (tmp := minimize(result(state, action))[0]) >= value:
+        tmp = minimize(result(state, action))[0]
+        if tmp >= value:
             value = tmp
             best_move = action
             if value == 1:
@@ -111,7 +113,8 @@ def minimize(state):
         return utility(state), None
     value, best_move = float("inf"), None
     for action in actions(state):
-        if (tmp := maximize(result(state, action))[0]) <= value:
+        tmp = maximize(result(state, action))[0]
+        if tmp <= value:
             value = tmp
             best_move = action
             if value == -1:
