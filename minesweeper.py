@@ -179,7 +179,8 @@ class MinesweeperAI:
                     continue
 
                 if 0 <= i < self.height and 0 <= j < self.width:
-                    neighbors.add((i, j))
+                    if (i, j) not in self.moves_made:
+                        neighbors.add((i, j))
 
         return neighbors
 
