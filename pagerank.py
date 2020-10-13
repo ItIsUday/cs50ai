@@ -59,10 +59,13 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
+    if not len(corpus[page]):
+        return dict.fromkeys(corpus.keys(), 1 / len(corpus))
     transitions = dict.fromkeys(corpus.keys(), (1 - damping_factor) / len(corpus))
     tmp = damping_factor / len(corpus[page])
     for value in corpus[page]:
         transitions[value] += tmp
+
     return transitions
 
 
@@ -75,7 +78,20 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    pages = list(corpus.keys())
+    sample = random.choice(list(pages))
+    pagerank = dict.fromkeys(pages, 0)
+
+    for _ in range(n):
+        transition = transition_model(corpus, sample, damping_factor)
+        values = [transition[key] for key in pages]
+        sample = random.choices(pages, values)[0]
+        pagerank[sample] += 1
+
+    for page in pages:
+        pagerank[page] /= n
+
+    return pagerank
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -88,18 +104,21 @@ def iterate_pagerank(corpus, damping_factor):
     PageRank values should sum to 1.
     """
     pagerank = dict.fromkeys(corpus.keys(), 1 / len(corpus))
+    parents = defaultdict(set)
 
-    from_pages = defaultdict(set)
     for key, value in corpus.items():
         for page in value:
-            from_pages[page].add(key)
+            parents[page].add(key)
+        if not len(value):
+            for page in corpus.keys():
+                parents[page].add(key)
 
     while True:
         prior_rank = pagerank.copy()
         for page in corpus.keys():
             tmp = 0
-            for parent in from_pages[page]:
-                tmp += pagerank[parent] / len(corpus[parent])
+            for parent in parents[page]:
+                tmp += pagerank[parent] / len(corpus[parent]) if len(corpus[parent]) else pagerank[parent] / len(corpus)
             pagerank[page] = (1 - damping_factor) / len(corpus) + damping_factor * tmp
 
         if all(isclose(pagerank[page], prior_rank[page], abs_tol=0.0001) for page in corpus.keys()):
