@@ -2,6 +2,8 @@ import os
 import random
 import re
 import sys
+from math import isclose
+from collections import defaultdict
 
 DAMPING = 0.85
 SAMPLES = 10000
@@ -11,10 +13,10 @@ def main():
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
     corpus = crawl(sys.argv[1])
-    ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
-    print(f"PageRank Results from Sampling (n = {SAMPLES})")
-    for page in sorted(ranks):
-        print(f"  {page}: {ranks[page]:.4f}")
+    # ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
+    # print(f"PageRank Results from Sampling (n = {SAMPLES})")
+    # for page in sorted(ranks):
+    #     print(f"  {page}: {ranks[page]:.4f}")
     ranks = iterate_pagerank(corpus, DAMPING)
     print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
@@ -81,7 +83,23 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    pagerank = dict.fromkeys(corpus.keys(), 1 / len(corpus))
+
+    from_pages = defaultdict(set)
+    for key, value in corpus.items():
+        for page in value:
+            from_pages[page].add(key)
+
+    while True:
+        prior_rank = pagerank.copy()
+        for page in corpus.keys():
+            tmp = 0
+            for parent in from_pages[page]:
+                tmp += pagerank[parent] / len(corpus[parent])
+            pagerank[page] = (1 - damping_factor) / len(corpus) + damping_factor * tmp
+
+        if all(isclose(pagerank[page], prior_rank[page], abs_tol=0.0001) for page in corpus.keys()):
+            return pagerank
 
 
 if __name__ == "__main__":
