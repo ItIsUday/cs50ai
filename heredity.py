@@ -38,7 +38,6 @@ PROBS = {
 
 
 def main():
-
     # Check for proper usage
     if len(sys.argv) != 2:
         sys.exit("Usage: python heredity.py data.csv")
@@ -76,7 +75,6 @@ def main():
         # Loop over all sets of people who might have the gene
         for one_gene in powerset(names):
             for two_genes in powerset(names - one_gene):
-
                 # Update probabilities with new joint probability
                 p = joint_probability(people, one_gene, two_genes, have_trait)
                 update(probabilities, one_gene, two_genes, have_trait, p)
@@ -139,7 +137,34 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    probability = 1
+
+    for person in people:
+        gene_count = (2 if person in two_genes else 1 if person in one_gene else 0)
+        trait_state = person in have_trait
+        mom = people[person]["mother"]
+        dad = people[person]["father"]
+
+        if mom is None and dad is None:
+            probability *= PROBS["gene"][gene_count]
+        else:
+            passing = {mom: 0, dad: 0}
+            for parent in passing:
+                passing[parent] = (
+                    1 - PROBS["mutation"] if parent in two_genes else
+                    0.5 if parent in one_gene else
+                    PROBS["mutation"]
+                )
+
+            probability *= (
+                passing[mom] * passing[dad] if gene_count == 2 else
+                passing[mom] * (1 - passing[dad]) + (1 - passing[mom]) * passing[dad] if gene_count == 1 else
+                (1 - passing[mom]) * (1 - passing[dad])
+            )
+
+        probability *= PROBS["trait"][gene_count][trait_state]
+
+    return probability
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
@@ -168,8 +193,6 @@ def normalize(probabilities):
             probabilities[person]["gene"][key] *= norm_gene
         for key in probabilities[person]["trait"]:
             probabilities[person]["trait"][key] *= norm_trait
-
-    return probabilities
 
 
 if __name__ == "__main__":
