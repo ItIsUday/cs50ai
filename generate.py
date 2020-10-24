@@ -148,7 +148,16 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        raise NotImplementedError
+        for v1, v2 in self.crossword.overlaps:
+            if (v1 not in assignment
+                    or v2 not in assignment
+                    or not self.crossword.overlaps[v1, v2]):
+                continue
+            i, j = self.crossword.overlaps[v1, v2]
+            if assignment[v1][i] != assignment[v2][j]:
+                return False
+
+        return True
 
     def order_domain_values(self, var, assignment):
         """
@@ -182,7 +191,6 @@ class CrosswordCreator():
 
 
 def main():
-
     # Check usage
     if len(sys.argv) not in [3, 4]:
         sys.exit("Usage: python generate.py structure words [output]")
