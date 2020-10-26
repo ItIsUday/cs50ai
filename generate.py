@@ -169,7 +169,7 @@ class CrosswordCreator():
         constraints = dict.fromkeys(self.domains[var], 0)
         for var_value in self.domains[var]:
             for neighbor in self.crossword.neighbors(var):
-                if not assignment.get(var, None):
+                if var not in assignment:
                     i, j = self.crossword.overlaps[var, neighbor]
                     for neighbor_value in self.domains[neighbor]:
                         if var_value[i] != neighbor_value[j]:
@@ -185,7 +185,17 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        raise NotImplementedError
+        mnv = None
+        for var in self.crossword.variables:
+            if var not in assignment:
+                if mnv is None:
+                    mnv = var
+                elif len(self.domains[mnv]) == len(self.domains[var]):
+                    mnv = max(mnv, var, key=lambda x: self.crossword.neighbors(x))
+                else:
+                    mnv = min(mnv, var, key=lambda x: len(self.domains[x]))
+
+        return mnv
 
     def backtrack(self, assignment):
         """
