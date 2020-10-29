@@ -121,7 +121,7 @@ class CrosswordCreator():
                 if x_value[i] != y_value[j]:
                     mismatches.add(x_value)
                     revised = True
-        self.domains[x] = self.domains[x].difference(mismatches)
+        self.domains[x] = self.domains[x] - mismatches
 
         return revised
 
@@ -148,14 +148,22 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        for v1, v2 in self.crossword.overlaps:
-            if (v1 not in assignment
-                    or v2 not in assignment
-                    or not self.crossword.overlaps[v1, v2]):
-                continue
-            i, j = self.crossword.overlaps[v1, v2]
-            if assignment[v1][i] != assignment[v2][j]:
+        for variable1 in assignment:
+            word1 = assignment[variable1]
+            if variable1.length != len(word1):
                 return False
+
+            for variable2 in assignment:
+                word2 = assignment[variable2]
+                if variable1 != variable2:
+                    if word1 == word2:
+                        return False
+
+                    overlap = self.crossword.overlaps[variable1, variable2]
+                    if overlap:
+                        i, j = overlap
+                        if word1[i] != word2[j]:
+                            return False
 
         return True
 
