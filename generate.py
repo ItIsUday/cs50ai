@@ -113,15 +113,18 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
+        overlap = self.crossword.overlaps[x, y]
+        if overlap is None:
+            return False
+        else:
+            i, j = overlap
         revised = False
         mismatches = set()
-        i, j = self.crossword.overlaps[x, y]
-        for x_value in self.domains[x]:
-            for y_value in self.domains[y]:
-                if x_value[i] != y_value[j]:
-                    mismatches.add(x_value)
-                    revised = True
-        self.domains[x] = self.domains[x] - mismatches
+        for xv in self.domains[x]:
+            if not any(map(lambda yv: xv != yv and xv[i] == yv[j], self.domains[y])):
+                mismatches.add(xv)
+                revised = True
+        self.domains[x] -= mismatches
 
         return revised
 
@@ -224,7 +227,20 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        if self.assignment_complete(assignment):
+            return assignment
+        variable = self.select_unassigned_variable(assignment)
+        for value in self.order_domain_values(variable, assignment):
+            assignment[variable] = value
+            if self.consistent(assignment):
+                result = self.backtrack(assignment)
+                if result is not None:
+                    return result
+                assignment.pop(variable)
+            else:
+                assignment.pop(variable)
+
+        return None
 
 
 def main():
