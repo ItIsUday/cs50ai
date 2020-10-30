@@ -235,16 +235,27 @@ class CrosswordCreator():
             return assignment
         variable = self.select_unassigned_variable(assignment)
         for value in self.order_domain_values(variable, assignment):
-            assignment[variable] = value
-            if self.consistent(assignment):
-                result = self.backtrack(assignment)
+            new_assignment = assignment.copy()
+            new_assignment[variable] = value
+            if self.consistent(new_assignment):
+                domain_backup = self.domains.copy()
+                inferences = self.__inference__(new_assignment)
+                if inferences:
+                    new_assignment.update(inferences)
+                result = self.backtrack(new_assignment)
                 if result is not None:
                     return result
-                assignment.pop(variable)
-            else:
-                assignment.pop(variable)
+                self.domains = domain_backup
 
         return None
+
+    def __inference__(self, assignment):
+        inferences = {}
+        if self.ac3():
+            for variable in self.crossword.variables:
+                if len(self.domains[variable]) == 1 and variable not in assignment:
+                    inferences[variable], = self.domains[variable]
+        return inferences
 
 
 def main():
