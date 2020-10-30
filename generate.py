@@ -99,10 +99,9 @@ class CrosswordCreator():
         (Remove any values that are inconsistent with a variable's unary
          constraints; in this case, the length of the word.)
         """
-        for variable in self.crossword.variables:
-            for word in self.crossword.words:
-                if len(word) != variable.length:
-                    self.domains[variable].remove(word)
+        for variable in self.domains:
+            self.domains[variable] = {value for value in self.crossword.words
+                                      if len(value) == variable.length}
 
     def revise(self, x, y):
         """
@@ -138,16 +137,22 @@ class CrosswordCreator():
         return False if one or more domains end up empty.
         """
         if arcs is None:
-            arcs = [(v1, v2) for v1, v2 in self.crossword.overlaps if self.crossword.overlaps[v1, v2]]
+            queue = [(v1, v2) for v1, v2 in self.crossword.overlaps
+                     if self.crossword.overlaps[v1, v2]]
+        else:
+            queue = arcs
 
-        for v1, v2 in arcs:
+        enforced = False
+        while len(queue) > 0:
+            v1, v2 = queue.pop(0)
             if self.revise(v1, v2):
+                enforced = True
                 if len(self.domains[v1]) == 0:
                     return False
                 for v3 in (self.crossword.neighbors(v1) - {v2}):
-                    arcs.append((v3, v1))
+                    queue.append((v3, v1))
 
-        return True
+        return enforced
 
     def assignment_complete(self, assignment):
         """
@@ -190,7 +195,7 @@ class CrosswordCreator():
         constraints = dict.fromkeys(self.domains[var], 0)
         for var_value in self.domains[var]:
             for neighbor in self.crossword.neighbors(var):
-                if var not in assignment:
+                if neighbor not in assignment:
                     i, j = self.crossword.overlaps[var, neighbor]
                     for neighbor_value in self.domains[neighbor]:
                         if var_value[i] != neighbor_value[j]:
@@ -207,14 +212,13 @@ class CrosswordCreator():
         return values.
         """
         mnv = None
-        for var in self.crossword.variables:
-            if var not in assignment:
-                if mnv is None:
-                    mnv = var
-                elif len(self.domains[mnv]) == len(self.domains[var]):
-                    mnv = max(mnv, var, key=lambda x: self.crossword.neighbors(x))
-                else:
-                    mnv = min(mnv, var, key=lambda x: len(self.domains[x]))
+        for var in (self.crossword.variables - set(assignment)):
+            if mnv is None:
+                mnv = var
+            elif len(self.domains[mnv]) == len(self.domains[var]):
+                mnv = max(mnv, var, key=lambda x: self.crossword.neighbors(x))
+            else:
+                mnv = min(mnv, var, key=lambda x: len(self.domains[x]))
 
         return mnv
 
