@@ -58,8 +58,8 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    int_type_fields = {"Administrative", "Informational", "ProductRelated", "Month", "OperatingSystems", "Browser",
-                       "Region", "TrafficType", "VisitorType", "Weekend"}
+    int_type_fields = {"Administrative", "Informational", "ProductRelated", "OperatingSystems", "Browser",
+                       "Region", "TrafficType"}
     float_type_fields = {"Administrative_Duration", "Informational_Duration", "ProductRelated_Duration", "BounceRates",
                          "ExitRates", "PageValues", "SpecialDay"}
     months_to_num = {"Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "June": 5,
@@ -83,6 +83,7 @@ def load_data(filename):
                     user.append(1 if row[field] == "TRUE" else 0)
             evidence.append(user)
             labels.append(1 if row['Revenue'] == 'TRUE' else 0)
+    return evidence, labels
 
 
 def train_model(evidence, labels):
@@ -110,7 +111,19 @@ def evaluate(labels, predictions):
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
     """
-    raise NotImplementedError
+    positives = negatives = 0
+    true_positives = true_negatives = 0
+
+    for i in range(len(labels)):
+        if labels[i]:
+            if predictions[i]:
+                true_positives += 1
+            positives += 1
+        if labels[i] == 0:
+            if predictions[i] == 0:
+                true_negatives += 1
+            negatives += 1
+    return true_positives / positives, true_negatives / negatives
 
 
 if __name__ == "__main__":
