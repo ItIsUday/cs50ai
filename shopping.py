@@ -8,7 +8,6 @@ TEST_SIZE = 0.4
 
 
 def main():
-
     # Check command-line arguments
     if len(sys.argv) != 2:
         sys.exit("Usage: python shopping.py data")
@@ -59,7 +58,31 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    raise NotImplementedError
+    int_type_fields = {"Administrative", "Informational", "ProductRelated", "Month", "OperatingSystems", "Browser",
+                       "Region", "TrafficType", "VisitorType", "Weekend"}
+    float_type_fields = {"Administrative_Duration", "Informational_Duration", "ProductRelated_Duration", "BounceRates",
+                         "ExitRates", "PageValues", "SpecialDay"}
+    months_to_num = {"Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "June": 5,
+                     "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11}
+
+    evidence, labels = [], []
+    with open(filename) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            user = []
+            for field in row:
+                if field in int_type_fields:
+                    user.append(int(row[field]))
+                elif field in float_type_fields:
+                    user.append(float(row[field]))
+                elif field == "Month":
+                    user.append(months_to_num[row[field]])
+                elif field == "VisitorType":
+                    user.append(1 if row[field] == "Returning_Visitor" else 0)
+                elif field == "Weekend":
+                    user.append(1 if row[field] == "TRUE" else 0)
+            evidence.append(user)
+            labels.append(1 if row['Revenue'] == 'TRUE' else 0)
 
 
 def train_model(evidence, labels):
