@@ -104,10 +104,10 @@ def top_files(query, files, idfs, n):
     files that match the query, ranked according to tf-idf.
     """
     filenames = list(files)
-    tfidf = defaultdict(float)
-    for file in files:
-        for word in query:
-            tfidf[file] += idfs[word] * files[file].count(word)
+    tfidf = {
+        file: sum(idfs[word] * words.count(word) for word in query)
+        for file, words in files.items()
+    }
     filenames.sort(key=lambda file: tfidf[file], reverse=True)
 
     return filenames[:n]
@@ -121,7 +121,15 @@ def top_sentences(query, sentences, idfs, n):
     the query, ranked according to idf. If there are ties, preference should
     be given to sentences that have a higher query term density.
     """
-    raise NotImplementedError
+    matched_sentences = list(sentences)
+    idf_term_density = {
+        sentence: (sum(idfs[word] for word in query if word in words),
+                   sum(1 for word in words if word in query) / len(sentence))
+        for sentence, words in sentences.items()
+    }
+    matched_sentences.sort(key=lambda sentence: idf_term_density[sentence], reverse=True)
+
+    return matched_sentences[:n]
 
 
 if __name__ == "__main__":
